@@ -7,6 +7,11 @@ present Ilpo, Valtteri and Timo
 1. Deep fake detection from video sequence
     - Possibly also audio?
     - Deepfake detection where most of the frames are real but some are fake!
+    - Articles:
+        - Dataset: <https://github.com/ControlNet/AV-Deepfake1M>
+        - AV-Deepfake1M: A Large-Scale LLM-Driven Audio-Visual Deepfake Dataset (<https://arxiv.org/abs/2311.15308>)
+        - DF-TransFusion: Multimodal Deepfake Detection via Lip-Audio Cross-Attention and Facial Self-Attention (<https://arxiv.org/abs/2309.06511>)
+        - Joint Audio-Visual Attention with Contrastive Learning for More General Deepfake Detection (<https://andor.tuni.fi/permalink/358FIN_TAMPO/176jdvt/cdi_crossref_primary_10_1145_3625100>)
 
 2. Operational Transformer
     - Switch normal neurons to operational neurons in a transformer. Some, all, whatever?
