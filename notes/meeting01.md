@@ -21,6 +21,14 @@ present Ilpo, Valtteri and Timo
    - Use ONNs for this
    - Try to find a mix of features to use to predict the data
    - Combining multiple datasets (on time axis)
+   - Data: https://www.fingrid.fi/
+
+   - Articles:
+     - Spot price prediction with feature extraction, and hybrid models https://www.sciencedirect.com/science/article/pii/S037877962100434X
+     - Transfer Learning vois olla hyvä lähestymistapa alkuun jos halutaan viljellä Op.Perceptroneita https://www.sciencedirect.com/science/article/pii/S2352467723000048
+     - A two-stage supervised learning approach for electricity price forecasting by leveraging different data sources https://www.sciencedirect.com/science/article/pii/S0306261919305380?ref=pdf_download&fr=RR-2&rr=84d3db3f5a6c70fc
+     - Yleisesti mietin: Miks ML ennustamista ei rakennella usean aiheeseen liittyvän datasetin varaan, vaan usein 1 in 1 out tyyppinen. Oisko tää just Hybrid modelin heiniä, et katotaan yksittäisten datasettien ennusteiden mukaan joku haluttu erillinen ennuste?
+     - Sähkössä just: suhdeluvut sisäänoston, eri tuotantomuotojen, ja kulutuksen mukaan, sääennuste  (vesi tuuli ja kulutus), ydinenergian huoltosammutukset
 
 ## Transformer resources
 
