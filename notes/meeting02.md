@@ -25,3 +25,7 @@ Agenda: Divide tasks for Operation Transformer project
 3. Find a tokenizer for the dataset (Ilpo)
     - <https://huggingface.co/docs/transformers/en/main_classes/tokenizer>
 4. (Build a simple transformer model) (FUTURE)
+
+### Tokenizer (Ilpo)
+
+I think byte-pair encoding (BPE) would be a good choice for the tokenizer. It's a subword tokenization algorithm that is widely used in NLP. It's also used in the GPT-2 model, so it would be a good fit for our project. It is fairly simple to implement (actually it is already implemented in the minGPT code). We can reuse that or then use one from the Hugging Face library (<https://huggingface.co/docs/tokenizers/en/quicktour>). It is also quick to train once we have decided the dataset we are going to use. OR we can use the GPT-2 tokenizer directly (<https://github.com/openai/tiktoken>).
