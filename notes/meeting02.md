@@ -21,6 +21,7 @@ Agenda: Divide tasks for Operation Transformer project
 ## Tasks
 
 1. Find a dataset (book-theme) (Timo)
+   - [List of datasets](datasets.md)
 2. Find a metric to evalaute the quality of the model (Valtteri)
 3. Find a tokenizer for the dataset (Ilpo)
     - <https://huggingface.co/docs/transformers/en/main_classes/tokenizer>
