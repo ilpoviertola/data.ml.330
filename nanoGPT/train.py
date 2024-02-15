@@ -199,10 +199,10 @@ if init_from == 'resume':
 checkpoint = None # free up memory
 
 # compile the model
-if compile:
-    print("compiling the model... (takes a ~minute)")
-    unoptimized_model = model
-    model = torch.compile(model) # requires PyTorch 2.0
+#if compile:
+#    print("compiling the model... (takes a ~minute)")
+#    unoptimized_model = model
+#    model = torch.compile(model) # requires PyTorch 2.0
 
 # wrap model into DDP container
 if ddp:
