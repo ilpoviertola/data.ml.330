@@ -83,12 +83,12 @@ class CausalSelfAttention(nn.Module):
                 v,
                 attn_mask=None,
                 dropout_p=self.dropout if self.training else 0,
-                is_causal=True,
+                is_causal=False,
             )
         else:
             # manual implementation of attention
             att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
-            att = att.masked_fill(self.bias[:, :, :T, :T] == 0, float("-inf"))
+            # att = att.masked_fill(self.bias[:, :, :T, :T] == 0, float("-inf"))
             att = F.softmax(att, dim=-1)
             att = self.attn_dropout(att)
             y = att @ v  # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
@@ -404,7 +404,7 @@ class GPT(nn.Module):
 class GPT4SentimentAnalysis(GPT):
     def __init__(self, config):
         super().__init__(config)
-        self.lm_head = nn.Linear(config.n_embd, 6)  # remove the old head
+        self.lm_head = nn.Linear(config.n_embd, 6, bias=False)  # remove the old head
         # OFF_tok is a special token that is prepended to the input sequence
         # to indicate that the model should produce a prediction for the OFF task
         # rather than the next token in the sequence
