@@ -19,7 +19,7 @@ LABEL_MAP = {
 class EmotionDataset(Dataset):
     def __init__(self, split, block_size):
         self.data = load_dataset("dair-ai/emotion", "split", split=split)
-        self.block_size = block_size
+        self.block_size = block_size - 1  # subtract 1 for the OFF token
         self.tokenizer = tiktoken.get_encoding("gpt2")
         self.pad_token = self.tokenizer.max_token_value + 1
 
