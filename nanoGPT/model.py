@@ -444,4 +444,15 @@ class GPT4SentimentAnalysis(GPT):
 
     @torch.no_grad()
     def generate(self, idx, max_new_tokens, temperature=1.0, top_k=None):
-        raise NotImplementedError
+        idx_cond = (
+            idx
+            if idx.size(1) <= self.config.block_size
+            else idx[:, -self.config.block_size :]
+        )
+        # forward the model to get the logits for the index in the sequence
+        logits, _ = self(idx_cond)
+        # apply softmax to convert logits to (normalized) probabilities
+        probs = F.softmax(logits, dim=-1)
+        # sample from the distribution
+
+        return probs
