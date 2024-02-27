@@ -15,6 +15,8 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as F
 
+from fastonn import SelfONN1d
+
 
 class LayerNorm(nn.Module):
     """LayerNorm but with an optional bias. PyTorch doesn't support simply bias=False"""
@@ -404,7 +406,10 @@ class GPT(nn.Module):
 class GPT4SentimentAnalysis(GPT):
     def __init__(self, config):
         super().__init__(config)
-        self.lm_head = nn.Linear(config.n_embd, 6, bias=False)  # remove the old head
+        # self.lm_head = nn.Linear(config.n_embd, 6, bias=False)  # remove the old head
+        self.lm_head = SelfONN1d(
+            in_channels=config.n_embd, out_channels=6, kernel_size=1, bias=False
+        )
         # OFF_tok is a special token that is prepended to the input sequence
         # to indicate that the model should produce a prediction for the OFF task
         # rather than the next token in the sequence
@@ -432,7 +437,9 @@ class GPT4SentimentAnalysis(GPT):
         for block in self.transformer.h:
             x = block(x)
         x = self.transformer.ln_f(x)[:, 0, :]  # only take the prediction token
+        x = x.permute(1, 0)  # (B, C, T) -> (B, T, C)
         logits = self.lm_head(x)
+        logits = logits.permute(1, 0)  # (B, T, C) -> (B, C, T)
         loss = None
         if targets is not None:
             # if we are given some desired targets also calculate the loss
