@@ -16,47 +16,53 @@ class LinearPosition(Enum):
     GptLmHead = auto()
 
 
-class SelfONN1dConfig(NamedTuple):
+class SelfONN1dParams(NamedTuple):
     """
-    SelfONN1d parameters
+    SelfONN1d parameters.
+    in_channels, out_channels and bias come from model
     """
     kernel_size: _scalar_or_tuple_1 = 1
     stride: _scalar_or_tuple_1 = 1
     padding: _scalar_or_tuple_1 = 0
     dilation: _scalar_or_tuple_1 = 1
     groups: int = 1
-    bias: bool = True
     q: int = 1
     padding_mode: str = 'zeros'
     mode: str = 'fast'
     dropout: Optional[float] = None
 
 
-class SelfONN1dPermuteConfig(SelfONN1dConfig):
+OnnConfig = Dict[LinearPosition, SelfONN1dParams]
+
+
+class LinearAdapter(nn.Module):
     """
-    SelfONN1dPermute parameters
-    """
-    pass
-
-
-OnnConfig = Dict[LinearPosition, Optional[SelfONN1dConfig]]
-
-
-class SelfONN1dPermute(SelfONN1d):
-    """
-    Fixes permutation when called
-    """
-    def __call__(self, x, *args, **kwargs):
-        x = x.permute(1, 0)
-        x = super().__call__(x, *args, **kwargs)
-        return x.permute(1, 0)
-
-
-class LinearAdapter:
-    """
-    Replaces nn.Linear with SelfONN1d or SelfONN1dPermute according to configuration
+    Replaces nn.Linear with SelfONN1d according to configuration
     """
     config: OnnConfig = {}
+
+    def __init__(self,
+                 position: LinearPosition,
+                 in_features: int,
+                 out_features: int,
+                 bias: bool = True,
+                 device=None,
+                 dtype=None):
+        super(LinearAdapter, self).__init__()
+
+        if position in self.config:
+            self.layer = SelfONN1d(in_features, out_features, bias=bias, **self.config[position]._asdict())
+        else:
+            self.layer = nn.Linear(in_features, out_features, bias, device, dtype)
+
+    def forward(self, x):
+        if isinstance(self.layer, SelfONN1d):
+            # FIXME: works only for GPT.lm_head
+            x = x.permute(1, 0)
+            x = self.layer(x)
+            return x.permute(1, 0)
+
+        return self.layer(x)
 
     @classmethod
     def configure(cls, value: OnnConfig):
@@ -66,27 +72,16 @@ class LinearAdapter:
         for pos, val in value.items():
             print(pos, val)
 
-    @classmethod
-    def get(cls, position: LinearPosition, in_features: int, out_features: int,
-            bias: bool = True, device=None, dtype=None) -> nn.Module:
-        if position in cls.config and cls.config[position] is not None:
-            onn = SelfONN1dPermute if isinstance(cls.config[position], SelfONN1dPermuteConfig) else SelfONN1d
-            return onn(in_channels=in_features, out_channels=out_features, **cls.config[position]._asdict())
 
-        return nn.Linear(in_features, out_features, bias, device, dtype)
-
-
-# SelfONN config
-# key: LinearPosition
-# value: SelfONN1dConfig -> SelfONN1d; SelfONN1dPermuteConfig -> SelfONN1dPermute; None -> nn.Linear
+# SelfONN config for nn.Linear layers
 config: OnnConfig = {
-    # TODO: not tested. fix permutation if needed
-    # LinearPosition.CausalSelfAttentionCAttn: SelfONN1dConfig(),
-    # LinearPosition.CausalSelfAttentionCProj: SelfONN1dConfig(),
-    # LinearPosition.MlpCFc: SelfONN1dConfig(),
-    # LinearPosition.MlpCProj: SelfONN1dConfig(),
+    # TODO: dimensions don't work
+    # LinearPosition.CausalSelfAttentionCAttn: SelfONN1dParams(),
+    # LinearPosition.CausalSelfAttentionCProj: SelfONN1dParams(),
+    # LinearPosition.MlpCFc: SelfONN1dParams(),
+    # LinearPosition.MlpCProj: SelfONN1dParams(),
 
-    # tested. uncomment to enable and adjust parameters
-    # LinearPosition.GptLmHead: SelfONN1dPermuteConfig(),
+    # works. uncomment to enable and adjust parameters
+    # LinearPosition.GptLmHead: SelfONN1dParams(),
 }
 LinearAdapter.configure(config)
