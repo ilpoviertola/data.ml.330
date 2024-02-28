@@ -50,7 +50,7 @@ def test():
 
     print(f"Resuming training from {out_dir}")
     # resume training from a checkpoint.
-    ckpt_path = os.path.join(out_dir, "ckpt.pt")
+    ckpt_path = os.path.join(out_dir, "ckpt-baseline.pt")
     checkpoint = torch.load(ckpt_path, map_location=device)
     checkpoint_model_args = checkpoint["model_args"]
     # force these config attributes to be equal otherwise we can't even resume training
@@ -81,7 +81,7 @@ def test():
     # -----------------------------------------------------------------------------
     # dataset
     # -----------------------------------------------------------------------------
-    dataset = EmotionDataset("validation", block_size)
+    dataset = EmotionDataset("test", block_size)
     dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
 
     # -----------------------------------------------------------------------------
@@ -103,7 +103,7 @@ def test():
             # print every 25th example
             print(f"\ttrue label: {label_str[0]}, pred label: {LABEL_MAP[pred_label]}")
 
-    print(f"total accuracy: {correct_preds / len(dataset):.2f}")
+    print(f"total accuracy: {(correct_preds / len(dataset)*100):.2f} %")
 
 
 if __name__ == "__main__":
