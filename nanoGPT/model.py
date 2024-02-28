@@ -15,6 +15,8 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as F
 
+from linear_adapter import LinearAdapter, LinearPosition
+
 
 class LayerNorm(nn.Module):
     """LayerNorm but with an optional bias. PyTorch doesn't support simply bias=False"""
@@ -34,9 +36,9 @@ class CausalSelfAttention(nn.Module):
         super().__init__()
         assert config.n_embd % config.n_head == 0
         # key, query, value projections for all heads, but in a batch
-        self.c_attn = nn.Linear(config.n_embd, 3 * config.n_embd, bias=config.bias)
+        self.c_attn = LinearAdapter.get(LinearPosition.CausalSelfAttentionCAttn, config.n_embd, 3 * config.n_embd, bias=config.bias)
         # output projection
-        self.c_proj = nn.Linear(config.n_embd, config.n_embd, bias=config.bias)
+        self.c_proj = LinearAdapter.get(LinearPosition.CausalSelfAttentionCProj, config.n_embd, config.n_embd, bias=config.bias)
         # regularization
         self.attn_dropout = nn.Dropout(config.dropout)
         self.resid_dropout = nn.Dropout(config.dropout)
@@ -105,9 +107,9 @@ class MLP(nn.Module):
 
     def __init__(self, config):
         super().__init__()
-        self.c_fc = nn.Linear(config.n_embd, 4 * config.n_embd, bias=config.bias)
+        self.c_fc = LinearAdapter.get(LinearPosition.MlpCFc, config.n_embd, 4 * config.n_embd, bias=config.bias)
         self.gelu = nn.GELU()
-        self.c_proj = nn.Linear(4 * config.n_embd, config.n_embd, bias=config.bias)
+        self.c_proj = LinearAdapter.get(LinearPosition.MlpCProj, 4 * config.n_embd, config.n_embd, bias=config.bias)
         self.dropout = nn.Dropout(config.dropout)
 
     def forward(self, x):
@@ -165,7 +167,7 @@ class GPT(nn.Module):
                 ln_f=LayerNorm(config.n_embd, bias=config.bias),
             )
         )
-        self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
+        self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)  # overridden in GPT4SentimentAnalysis
         # with weight tying when using torch.compile() some warnings get generated:
         # "UserWarning: functional_call was passed multiple values for tied weights.
         # This behavior is deprecated and will be an error in future versions"
@@ -404,7 +406,8 @@ class GPT(nn.Module):
 class GPT4SentimentAnalysis(GPT):
     def __init__(self, config):
         super().__init__(config)
-        self.lm_head = nn.Linear(config.n_embd, 6, bias=False)  # remove the old head
+        self.lm_head = LinearAdapter.get(LinearPosition.GptLmHead, config.n_embd, 6, bias=False)  # remove the old head
+
         # OFF_tok is a special token that is prepended to the input sequence
         # to indicate that the model should produce a prediction for the OFF task
         # rather than the next token in the sequence
