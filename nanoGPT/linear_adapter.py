@@ -57,10 +57,9 @@ class LinearAdapter(nn.Module):
 
     def forward(self, x):
         if isinstance(self.layer, SelfONN1d):
-            # FIXME: works only for GPT.lm_head
-            x = x.permute(1, 0)
+            x = self.swap_last_two_dimensions(x)
             x = self.layer(x)
-            return x.permute(1, 0)
+            return self.swap_last_two_dimensions(x)
 
         return self.layer(x)
 
@@ -72,16 +71,20 @@ class LinearAdapter(nn.Module):
         for pos, val in value.items():
             print(pos, val)
 
+    @staticmethod
+    def swap_last_two_dimensions(x):
+        indices = list(range(x.dim()))
+        indices[-2], indices[-1] = indices[-1], indices[-2]
+        return x.permute(*indices)
+
 
 # SelfONN config for nn.Linear layers
+# uncomment layer to enable and adjust parameters
 config: OnnConfig = {
-    # TODO: dimensions don't work
     # LinearPosition.CausalSelfAttentionCAttn: SelfONN1dParams(),
     # LinearPosition.CausalSelfAttentionCProj: SelfONN1dParams(),
     # LinearPosition.MlpCFc: SelfONN1dParams(),
     # LinearPosition.MlpCProj: SelfONN1dParams(),
-
-    # works. uncomment to enable and adjust parameters
     # LinearPosition.GptLmHead: SelfONN1dParams(),
 }
 LinearAdapter.configure(config)
