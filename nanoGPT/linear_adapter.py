@@ -2,6 +2,7 @@ from enum import Enum, auto
 from typing import NamedTuple, Optional, Dict
 
 import torch.nn as nn
+from torch import Tensor
 from fastonn.SelfONN import _scalar_or_tuple_1, SelfONN1d
 
 
@@ -55,11 +56,11 @@ class LinearAdapter(nn.Module):
         else:
             self.layer = nn.Linear(in_features, out_features, bias, device, dtype)
 
-    def forward(self, x):
+    def forward(self, x: Tensor):
         if isinstance(self.layer, SelfONN1d):
-            x = self.swap_last_two_dimensions(x)
+            x = self.transpose_last_two_dimensions(x)
             x = self.layer(x)
-            return self.swap_last_two_dimensions(x)
+            return self.transpose_last_two_dimensions(x)
 
         return self.layer(x)
 
@@ -72,10 +73,8 @@ class LinearAdapter(nn.Module):
             print(pos, val)
 
     @staticmethod
-    def swap_last_two_dimensions(x):
-        indices = list(range(x.dim()))
-        indices[-2], indices[-1] = indices[-1], indices[-2]
-        return x.permute(*indices)
+    def transpose_last_two_dimensions(x: Tensor):
+        return x.transpose(-2, -1)
 
 
 # SelfONN config for nn.Linear layers
