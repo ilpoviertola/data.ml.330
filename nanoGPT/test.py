@@ -74,7 +74,7 @@ def test():
     iter_num = checkpoint["iter_num"]
     best_val_loss = checkpoint["best_val_loss"]
 
-    print(f"model loaded from {out_dir}")
+    print(f"model loaded from {ckpt_path}")
     print(f"\twas trained for {iter_num} iterations")
     print(f"\tbest validation loss: {best_val_loss:.4f}")
 
