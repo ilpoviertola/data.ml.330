@@ -217,6 +217,8 @@ class GPT(nn.Module):
         return n_params
 
     def _init_weights(self, module):
+        if isinstance(module, LinearAdapter):
+            module = module.layer
         if isinstance(module, nn.Linear):
             torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
             if module.bias is not None:
