@@ -43,6 +43,9 @@ CKPT_NAME = f"ckpt-{get_curr_time_w_random_shift()}.pt"
 # name of the checkpoint file to resume training from
 RESUME_CKPT_NAME = ""
 
+print(f"checkpoint name: {CKPT_NAME}")
+print(f"resume checkpoint name: {RESUME_CKPT_NAME}")
+
 # -----------------------------------------------------------------------------
 # default config values designed to train a gpt2 (124M) on OpenWebText
 # I/O
@@ -83,9 +86,7 @@ min_lr = 6e-5  # minimum learning rate, should be ~= learning_rate/10 per Chinch
 # DDP settings
 backend = "nccl"  # 'nccl', 'gloo', etc.
 # system
-device = (
-    "cuda"  # examples: 'cpu', 'cuda', 'cuda:0', 'cuda:1' etc., or try 'mps' on macbooks
-)
+device = "cuda:0"  # examples: 'cpu', 'cuda', 'cuda:0', 'cuda:1' etc., or try 'mps' on macbooks
 dtype = (
     "bfloat16"
     if torch.cuda.is_available() and torch.cuda.is_bf16_supported()
