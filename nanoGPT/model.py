@@ -36,9 +36,19 @@ class CausalSelfAttention(nn.Module):
         super().__init__()
         assert config.n_embd % config.n_head == 0
         # key, query, value projections for all heads, but in a batch
-        self.c_attn = LinearAdapter(LinearPosition.CausalSelfAttentionCAttn, config.n_embd, 3 * config.n_embd, bias=config.bias)
+        self.c_attn = LinearAdapter(
+            LinearPosition.CausalSelfAttentionCAttn,
+            config.n_embd,
+            3 * config.n_embd,
+            bias=config.bias,
+        )
         # output projection
-        self.c_proj = LinearAdapter(LinearPosition.CausalSelfAttentionCProj, config.n_embd, config.n_embd, bias=config.bias)
+        self.c_proj = LinearAdapter(
+            LinearPosition.CausalSelfAttentionCProj,
+            config.n_embd,
+            config.n_embd,
+            bias=config.bias,
+        )
         # regularization
         self.attn_dropout = nn.Dropout(config.dropout)
         self.resid_dropout = nn.Dropout(config.dropout)
@@ -107,9 +117,13 @@ class MLP(nn.Module):
 
     def __init__(self, config):
         super().__init__()
-        self.c_fc = LinearAdapter(LinearPosition.MlpCFc, config.n_embd, 4 * config.n_embd, bias=config.bias)
+        self.c_fc = LinearAdapter(
+            LinearPosition.MlpCFc, config.n_embd, 4 * config.n_embd, bias=config.bias
+        )
         self.gelu = nn.GELU()
-        self.c_proj = LinearAdapter(LinearPosition.MlpCProj, 4 * config.n_embd, config.n_embd, bias=config.bias)
+        self.c_proj = LinearAdapter(
+            LinearPosition.MlpCProj, 4 * config.n_embd, config.n_embd, bias=config.bias
+        )
         self.dropout = nn.Dropout(config.dropout)
 
     def forward(self, x):
@@ -167,7 +181,9 @@ class GPT(nn.Module):
                 ln_f=LayerNorm(config.n_embd, bias=config.bias),
             )
         )
-        self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)  # overridden in GPT4SentimentAnalysis
+        self.lm_head = nn.Linear(
+            config.n_embd, config.vocab_size, bias=False
+        )  # overridden in GPT4SentimentAnalysis
         # with weight tying when using torch.compile() some warnings get generated:
         # "UserWarning: functional_call was passed multiple values for tied weights.
         # This behavior is deprecated and will be an error in future versions"
@@ -406,7 +422,9 @@ class GPT(nn.Module):
 class GPT4SentimentAnalysis(GPT):
     def __init__(self, config):
         super().__init__(config)
-        self.lm_head = LinearAdapter(LinearPosition.GptLmHead, config.n_embd, 6, bias=False)  # remove the old head
+        self.lm_head = LinearAdapter(
+            LinearPosition.GptLmHead, config.n_embd, 6, bias=False
+        )  # remove the old head
 
         # OFF_tok is a special token that is prepended to the input sequence
         # to indicate that the model should produce a prediction for the OFF task
@@ -434,8 +452,8 @@ class GPT4SentimentAnalysis(GPT):
         )  # prepend prediction token
         for block in self.transformer.h:
             x = block(x)
-        x = self.transformer.ln_f(x)[:, 0, :]  # only take the prediction token
-        logits = self.lm_head(x)
+        x = self.transformer.ln_f(x)[:, 0:1, :]  # only take the prediction token
+        logits = self.lm_head(x).squeeze(1)  # remove temporal dimension
         loss = None
         if targets is not None:
             # if we are given some desired targets also calculate the loss

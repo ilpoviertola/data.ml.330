@@ -21,6 +21,7 @@ import time
 import math
 import pickle
 from contextlib import nullcontext
+from datetime import datetime, timedelta
 
 import numpy as np
 import torch
@@ -29,6 +30,18 @@ from torch.distributed import init_process_group, destroy_process_group
 
 from model import GPTConfig, GPT, GPT4SentimentAnalysis
 from data.emotion.emotion_dataset import EmotionDataset
+
+
+def get_curr_time_w_random_shift() -> str:
+    # shifting for a random number of seconds so that exp folder names coincide less often
+    now = datetime.now() - timedelta(seconds=np.random.randint(60))
+    return now.strftime("%y-%m-%dT%H-%M-%S")
+
+
+# name of the checkpoint file saved during training
+CKPT_NAME = f"ckpt-{get_curr_time_w_random_shift()}.pt"
+# name of the checkpoint file to resume training from
+RESUME_CKPT_NAME = ""
 
 # -----------------------------------------------------------------------------
 # default config values designed to train a gpt2 (124M) on OpenWebText
@@ -228,7 +241,7 @@ if init_from == "scratch":
 elif init_from == "resume":
     print(f"Resuming training from {out_dir}")
     # resume training from a checkpoint.
-    ckpt_path = os.path.join(out_dir, "ckpt.pt")
+    ckpt_path = os.path.join(out_dir, RESUME_CKPT_NAME)
     checkpoint = torch.load(ckpt_path, map_location=device)
     checkpoint_model_args = checkpoint["model_args"]
     # force these config attributes to be equal otherwise we can't even resume training
@@ -371,7 +384,7 @@ while True:
                     "config": config,
                 }
                 print(f"saving checkpoint to {out_dir}")
-                torch.save(checkpoint, os.path.join(out_dir, "ckpt.pt"))
+                torch.save(checkpoint, os.path.join(out_dir, CKPT_NAME))
     if iter_num == 0 and eval_only:
         break
 

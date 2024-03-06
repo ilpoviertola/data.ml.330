@@ -8,6 +8,9 @@ from torch.utils.data import DataLoader
 from model import GPTConfig, GPT, GPT4SentimentAnalysis
 from data.emotion.emotion_dataset import EmotionDataset, LABEL_MAP
 
+# Define the tested checkpoint file name here
+CKPT_NAME = ""
+
 
 def test():
     # -----------------------------------------------------------------------------
@@ -50,7 +53,7 @@ def test():
 
     print(f"Resuming training from {out_dir}")
     # resume training from a checkpoint.
-    ckpt_path = os.path.join(out_dir, "ckpt-baseline.pt")
+    ckpt_path = os.path.join(out_dir, CKPT_NAME)
     checkpoint = torch.load(ckpt_path, map_location=device)
     checkpoint_model_args = checkpoint["model_args"]
     # force these config attributes to be equal otherwise we can't even resume training
