@@ -10,6 +10,7 @@ class LinearPosition(Enum):
     """
     nn.Linear position in model
     """
+
     CausalSelfAttentionCAttn = auto()
     CausalSelfAttentionCProj = auto()
     MlpCFc = auto()
@@ -22,14 +23,15 @@ class SelfONN1dParams(NamedTuple):
     SelfONN1d parameters.
     in_channels, out_channels and bias come from model
     """
+
     kernel_size: _scalar_or_tuple_1 = 1
     stride: _scalar_or_tuple_1 = 1
     padding: _scalar_or_tuple_1 = 0
     dilation: _scalar_or_tuple_1 = 1
     groups: int = 1
     q: int = 1
-    padding_mode: str = 'zeros'
-    mode: str = 'fast'
+    padding_mode: str = "zeros"
+    mode: str = "fast"
     dropout: Optional[float] = None
 
 
@@ -40,19 +42,24 @@ class LinearAdapter(nn.Module):
     """
     Replaces nn.Linear with SelfONN1d according to configuration
     """
+
     config: OnnConfig = {}
 
-    def __init__(self,
-                 position: LinearPosition,
-                 in_features: int,
-                 out_features: int,
-                 bias: bool = True,
-                 device=None,
-                 dtype=None):
+    def __init__(
+        self,
+        position: LinearPosition,
+        in_features: int,
+        out_features: int,
+        bias: bool = False,
+        device=None,
+        dtype=None,
+    ):
         super(LinearAdapter, self).__init__()
 
         if position in self.config:
-            self.layer = SelfONN1d(in_features, out_features, bias=bias, **self.config[position]._asdict())
+            self.layer = SelfONN1d(
+                in_features, out_features, bias=bias, **self.config[position]._asdict()
+            )
         else:
             self.layer = nn.Linear(in_features, out_features, bias, device, dtype)
 
