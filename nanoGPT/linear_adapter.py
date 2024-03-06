@@ -53,10 +53,12 @@ class LinearAdapter(nn.Module):
         bias: bool = False,
         device=None,
         dtype=None,
+        layer_num: int = 0,
     ):
         super(LinearAdapter, self).__init__()
 
-        if position in self.config:
+        # hard oded for 6 layer GPT to substitute nn.Linear with SelfONN1d on last layer
+        if position in self.config and layer_num == 5:
             self.layer = SelfONN1d(
                 in_features, out_features, bias=bias, **self.config[position]._asdict()
             )
